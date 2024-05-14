@@ -18,6 +18,84 @@ export type NvimMode = "all"
   | "more_lastline"
   | "showmatch";
 
+export const MappableKeys = [
+  "1",
+  "!",
+  "2",
+  "@",
+  "3",
+  "#",
+  "4",
+  "$",
+  "5",
+  "%",
+  "6",
+  "^",
+  "7",
+  "&",
+  "8",
+  "*",
+  "9",
+  "(",
+  "0",
+  ")",
+  "-",
+  "_",
+  "=",
+  "+",
+  "[",
+  "{",
+  "]",
+  "}",
+  "\\",
+  "|",
+  ";",
+  ":",
+  "'",
+  '"',
+  ",",
+  "<",
+  ".",
+  ">",
+  "/",
+  "?",
+  "`",
+  "~",
+] as const;
+
+export type MappableKey = (typeof MappableKeys)[number];
+export type MappableKeyPairs = Partial<Record<MappableKey, MappableKey>>;
+
+export const defaultKeyPairs: MappableKeyPairs = {
+  "1": "!",
+  "2": "@",
+  "3": "#",
+  "4": "$",
+  "5": "%",
+  "6": "^",
+  "7": "&",
+  "8": "*",
+  "9": "(",
+  "0": ")",
+  "-": "_",
+  "=": "+",
+  "[": "{",
+  "]": "}",
+  "\\": "|",
+  ";": ":",
+  "'": '"',
+  ",": "<",
+  ".": ">",
+  "/": "?",
+  "`": "~",
+};
+
+export const enum ShiftMods {
+  shiftAlt = "shiftAlt",
+  shiftCtrl = "shiftCtrl",
+  shiftAltCtrl = "shiftAltCtrl",
+}
+
 export interface ISiteConfig {
     cmdline: "neovim" | "firenvim" | "none";
     content: "html" | "text";
@@ -37,6 +115,22 @@ export type GlobalSettings = {
   "<CS-t>": "default" | "noop",
   "<CS-w>": "default" | "noop",
   ignoreKeys: { [key in NvimMode]: string[] },
+  // Different layouts for `{ key: shiftedKey }` pairs
+  // For example, you can setup default layout and a custom layout like this:
+  // {
+  //    default: { ["/"]: "?", "$key1": "$shifted_key1", "$key2": "$shifted_key2", ... },
+  //    my_custom_layout: { ... }
+  // }
+  // currently supports default layout only
+  // TODO: add switching keyboard layout
+  keyboard_layouts: Record<string, MappableKeyPairs>;
+  // Controls behavior of passing "alt+shift+mappableKey".
+  // For example, pressing "alt+shift+/" with default { ["/"]: "?" }:
+  //     if true, will call `vim.api.nvim_input("<AS-/>")
+  //     if false, will call `vim.api.nvim_input("<A-?>")
+  [ShiftMods.shiftAlt]: boolean;
+  [ShiftMods.shiftCtrl]: boolean;
+  [ShiftMods.shiftAltCtrl]: boolean;
   cmdlineTimeout: number,
 }
 
@@ -89,6 +183,17 @@ export function mergeWithDefaults(os: string, settings: any): IConfig {
     makeDefaults(settings.globalSettings, "<CS-w>", "default");
     // #717: allow passing keys to the browser
     makeDefaults(settings.globalSettings, "ignoreKeys", {});
+
+    makeDefaults(settings.globalSettings, "keyboard_layouts", {});
+    makeDefaults(
+      settings.globalSettings.keyboard_layouts,
+      "default",
+      defaultKeyPairs,
+    );
+    makeDefaults(settings.globalSettings, ShiftMods.shiftAlt, false);
+    makeDefaults(settings.globalSettings, ShiftMods.shiftCtrl, true);
+    makeDefaults(settings.globalSettings, ShiftMods.shiftAltCtrl, true);
+
     // #1050: cursor sometimes covered by command line
     makeDefaults(settings.globalSettings, "cmdlineTimeout", 3000);
 
