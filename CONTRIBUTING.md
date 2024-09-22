@@ -21,12 +21,13 @@ Building without Docker requires NodeJS, npm, and Neovim >= 0.4.
 Install Firenvim like a regular vim plugin (either by changing your runtime path manually or by [using your favourite plugin manager](README.md#installing)).
 
 Then run the following commands:
+
 ```sh
 git clone https://github.com/glacambre/firenvim
 cd firenvim
 npm install
 npm run build
-npm run install_manifests
+npm run install_available_manifests # or `npm run force_install_manifests` to install all manifests
 ```
 
 These commands should create three directories: `target/chrome`, `target/firefox` and `target/xpi`.
@@ -62,7 +63,7 @@ The background process is started on browser startup and takes care of several t
 
 - Starting the Neovim server and loading the settings from your init.vim.
 - Handling browser shortcuts such as `<C-w>`, `<C-n>` or `<C-t>` that cannot be overridden by the Neovim Frame process.
-- Logging errors and sending them to the browserAction. 
+- Logging errors and sending them to the browserAction.
 - Forwarding messages from the Neovim Frame process to the content process and vice versa.
 
 ### Content
